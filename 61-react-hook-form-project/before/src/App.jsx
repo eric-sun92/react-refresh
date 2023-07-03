@@ -3,6 +3,7 @@ import ReactSelect from "react-select"
 import { useRef, useState } from "react"
 import "./styles.css"
 import { checkCountry, checkEmail, checkPassword } from "./validators"
+import {useForm} from "react-hook-form"
 
 const COUNTRY_OPTIONS = [
   { label: "United States", value: "US" },
@@ -11,43 +12,35 @@ const COUNTRY_OPTIONS = [
 ]
 
 function App() {
-  const emailRef = useRef()
-  const passwordRef = useRef()
+
+  const {register, handleSubmit, 
+    formState: { errors }} = useForm()
+
   const countryRef = useRef()
 
-  const [emailErrors, setEmailErrors] = useState([])
-  const [passwordErrors, setPasswordErrors] = useState([])
   const [countryErrors, setCountryErrors] = useState([])
 
-  function onSubmit(e) {
-    e.preventDefault()
-
-    const emailResults = checkEmail(emailRef.current.value)
-    const passwordResults = checkPassword(passwordRef.current.value)
-    const countryResults = checkCountry(countryRef.current.getValue()[0])
-
-    setEmailErrors(emailResults)
-    setPasswordErrors(passwordResults)
-    setCountryErrors(countryResults)
-
-    if (
-      emailResults.length === 0 &&
-      passwordResults.length === 0 &&
-      countryResults.length === 0
-    ) {
-      alert("Success")
-    }
+  function onSubmit(data) {
+    console.log(data)
+    alert("Success")
   }
 
   return (
-    <form onSubmit={onSubmit} className="form">
-      <FormGroup errors={emailErrors}>
+    <form onSubmit={handleSubmit(onSubmit)} className="form">
+      <FormGroup errorMessage={errors?.email?.message}>
         <label className="label" htmlFor="email">
           Email
         </label>
-        <input className="input" type="email" id="email" ref={emailRef} />
+        <input className="input" type="email" id="email" 
+        {...register("email", 
+        {required: {value: true, message: "Required"}, 
+        validate: value => {
+          if (!value.endsWith("@webdevsimplified.com")) {
+            return "Must end with @webdevsimplified.com"
+          }
+        }})} />
       </FormGroup>
-      <FormGroup errors={passwordErrors}>
+      <FormGroup errorMessage={errors?.password?.message}>
         <label className="label" htmlFor="password">
           Password
         </label>
@@ -55,7 +48,15 @@ function App() {
           className="input"
           type="password"
           id="password"
-          ref={passwordRef}
+          {...register("password", 
+          {
+            required: {value: true, message: "Required"},
+            validate: value => {
+              if (value.length < 10) {
+                return "Min Length is 10 characters"
+              }
+            }
+          })}
         />
       </FormGroup>
       <FormGroup errors={countryErrors}>
